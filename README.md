@@ -1,15 +1,13 @@
-### Example VMware Kickstart For Non-DHCP Environment
-
 This repo contains a VMware ESXi Kickstart (ks.cfg) file for automated ESXi deployments in a non-DHCP environment.
 
-### Story Behind the Idea
+### Story Behind the Kickstart Script
 - We are planning to install ESXi (version 8 at that time) on a total of 80 ESXi hosts and due to regulatory measures the environment required all components to have static IPs and no DHCP server to be used.
 
 - To workout this we tried to find a to natively boot the UCS Blades using the ESXi ISO via vMedia Policy. It is a wonderful feature in Cisco UCS that allows to attach an ISO media to a number of blade servers managed by a UCSM.
 
 - The only thing we need was a automated installation script(aka the kickstart) for ESXi, now most kickstart files we encountered assumes a DHCP server to be there already so IP assignment is offloaded to a DHCP server at least for initial boot process and later it can be changed to a static IP. But it helps because the server or more precisely the ESXi bootloader can be told to use a kickstart file that is located somewhere on a remote server.
 
-- Now since we don't have a DHCP server it is not possible for our ESXi ISO to download a kickstart located elsewhere. We need to build a self-contained custom ISO to carry the kickstart.
+- Now since we don't have a DHCP server it is not possible for our ESXi to download a kickstart located elsewhere. We need to build a self-contained custom ISO to carry the kickstart.
 
 - Now the other problem was how we are going to distribute all the IPs  we kept aside for ESXi hosts from the IP pool making sure the script assign an IP to only one host and avoid any possibility of duplicates.
 
@@ -29,7 +27,29 @@ This repo contains a VMware ESXi Kickstart (ks.cfg) file for automated ESXi depl
 - Have a look at the script to understand it better.
 
 ---
+### Usage
 
+- To use the kickstart by baking it into the official ESXi ISO you can use esxi_ks_injector tool refer to this wonderful [article](https://www.virten.net/2021/11/automated-esxi-installation-inject-kickstart-file-to-esxi-iso/) we found.
+- **Syntax:**
+```
+# Create a directory to start clean
+mkdir cutom_ks_iso
+cd cutom_ks_iso
+
+# Copy the esxi_ks_injector scripts
+git clone https://github.com/fgrehl/virten-scripts.git
+cd virten-scripts/bash/esxi_ks_injector/
+
+# Download and copy the ks.cfg from this repo safely
+git fetch --depth=1 https://github.com/vaibhavsi2/VMware-ESXi-KickStart.git  main
+git checkout FETCH_HEAD -- ks.cfg
+# Execute the esx_ks_iso.sh from the current directory where ks.cfg is downloaded
+chmod +x ./esxi_ks_iso.sh
+./esxi_ks_iso.sh -i /path/to/offical/esxi.iso -k ./ks.cfg -w /path/to/destination/dir/for/resulting/esxi_custom_iso
+
+```
+
+---
 ### Credits:
 - Thanks to 'The Odd Angry Shot' for there wonderful [article]( https://theoddangryshot.com/2016/09/07/esxi-kickstart-with-python/)
 - Thanks to 'Virten' for creating the [esxi_ks_injector](https://github.com/fgrehl/virten-scripts/tree/master/bash/esxi_ks_injector) tool
